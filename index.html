@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Resume Screening System</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <h1>AI Resume Screening & Background Verification</h1>
+
+    <!-- ================= FORM ================= -->
+    <form id="analyzeForm" enctype="multipart/form-data">
+
+        <label>Upload Resumes (Multiple Allowed)</label>
+        <input type="file" name="resume" multiple required>
+
+        <label>Job Description</label>
+        <textarea name="job_desc" rows="6" required 
+            placeholder="Paste job description here..."></textarea>
+
+        <label>Reddit Profile Link (Public Only)</label>
+        <input type="text" name="profile_link" 
+            placeholder="https://www.reddit.com/user/username/">
+
+        <button type="submit">Analyze Candidates</button>
+    </form>
+
+    <!-- ================= LOADING ================= -->
+    <div id="loading" class="hidden">
+        <p>Analyzing resumes and background... Please wait...</p>
+    </div>
+
+    <!-- ================= RESULTS ================= -->
+    <div id="result" class="hidden">
+
+        <h2>Ranked Candidates</h2>
+        <div id="rankedCandidates"></div>
+
+        <h2>Background Analysis Summary</h2>
+        <div id="backgroundSummary"></div>
+
+    </div>
+
+</div>
+
+<script>
+const form = document.getElementById("analyzeForm");
+const loading = document.getElementById("loading");
+const resultDiv = document.getElementById("result");
+const rankedDiv = document.getElementById("rankedCandidates");
+const backgroundDiv = document.getElementById("backgroundSummary");
+
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    loading.classList.remove("hidden");
+    resultDiv.classList.add("hidden");
+    rankedDiv.innerHTML = "";
+    backgroundDiv.innerHTML = "";
+
+    const formData = new FormData(form);
+
+    try {
+        const response = await fetch("/analyze", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await response.json();
+
+        loading.classList.add("hidden");
+
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+
+        // ================= RANKED CANDIDATES =================
+        data.ranked_candidates.forEach((candidate, index) => {
+
+            const badgeColor =
+                candidate.risk_level === "LOW" ? "green" :
+                candidate.risk_level === "MEDIUM" ? "orange" : "red";
+
+            const card = document.createElement("div");
+            card.classList.add("candidate-card");
+
+            card.innerHTML = `
+                <h3>Rank ${index + 1}: ${candidate.filename}</h3>
+                <p><b>Resume Score:</b> ${candidate.resume_score}%</p>
+                <p><b>Toxicity Percent:</b> ${candidate.toxicity_percent}%</p>
+                <p><b>Risk Level:</b> 
+                    <span style="color:${badgeColor}; font-weight:bold;">
+                        ${candidate.risk_level}
+                    </span>
+                </p>
+                <p><b>Penalty:</b> ${candidate.penalty}</p>
+                <p><b>Final Score:</b> ${candidate.final_score}</p>
+                <hr>
+            `;
+
+            rankedDiv.appendChild(card);
+        });
+
+        // ================= BACKGROUND SUMMARY =================
+        const bg = data.background_report;
+
+        backgroundDiv.innerHTML = `
+            <p><b>Total Posts Analyzed:</b> ${bg.total_posts}</p>
+            <p><b>Flagged Posts:</b> ${bg.flagged_posts}</p>
+            <p><b>Risk Percent:</b> ${bg.risk_percent}%</p>
+        `;
+
+        resultDiv.classList.remove("hidden");
+
+    } catch (error) {
+        loading.classList.add("hidden");
+        alert("Server error. Check console.");
+        console.error(error);
+    }
+});
+</script>
+
+</body>
+</html>
