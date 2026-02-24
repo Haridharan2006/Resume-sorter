@@ -1,8 +1,0 @@
-flask
-pdfplumber
-python-docx
-spacy
-sentence-transformers
-torch
-transformers
-detoxify
