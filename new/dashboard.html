@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<h2>Ranked Candidates</h2>
+
+<table border="1" cellpadding="10">
+<tr>
+    <th>Filename</th>
+    <th>Resume Score</th>
+    <th>Toxicity %</th>
+    <th>Final Score</th>
+</tr>
+
+{% for c in results %}
+<tr>
+    <td>{{ c.filename }}</td>
+    <td>{{ c.resume_score }}</td>
+    <td>{{ c.toxicity_score }}</td>
+    <td>{{ c.final_score }}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+<br>
+<a href="/">Analyze Another Resume</a>
+
+</body>
+</html>
