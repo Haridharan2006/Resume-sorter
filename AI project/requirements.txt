@@ -1,0 +1,8 @@
+flask
+flask_sqlalchemy
+pdfplumber
+python-docx
+sentence-transformers
+torch
+detoxify
+praw
